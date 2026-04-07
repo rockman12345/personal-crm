@@ -14,7 +14,7 @@ A personal CRM built with Next.js to manage contacts, relationships, workflows, 
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router)
-- **Database**: SQLite via Prisma (swap to Postgres for production)
+- **Database**: Supabase (Postgres) via Prisma
 - **Styling**: Tailwind CSS v4
 - **AI**: Anthropic Claude API
 - **Deployment**: Vercel
@@ -25,17 +25,45 @@ A personal CRM built with Next.js to manage contacts, relationships, workflows, 
 
 - Node.js 18+
 - npm or yarn
+- A [Supabase](https://supabase.com) account (free tier works great)
 
-### Installation
+### 1. Create a Supabase Project
+
+1. Go to [supabase.com](https://supabase.com) and create a new project
+2. Once created, go to **Settings → Database**
+3. Scroll to **Connection string** and select **URI** mode
+4. Copy the connection string — it looks like:
+   ```
+   postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres
+   ```
+
+### 2. Set Up Environment Variables
+
+Edit `.env` with your values:
+
+```env
+# Supabase Postgres connection string (from Settings → Database → URI)
+DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres"
+
+# Supabase project URL and anon key (from Settings → API)
+# Required only if using Supabase Auth, Realtime, or Storage
+NEXT_PUBLIC_SUPABASE_URL="https://[YOUR-PROJECT-REF].supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+
+# AI Integration
+ANTHROPIC_API_KEY="your-anthropic-api-key"
+```
+
+### 3. Install & Run
 
 ```bash
-# Clone or navigate to the project
-cd personal-crm
-
 # Install dependencies
 npm install
 
-# Set up the database
+# Push the schema to Supabase
+npx prisma db push
+
+# (Or run migrations)
 npx prisma migrate dev --name init
 
 # Start the dev server
@@ -44,17 +72,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-### Environment Variables
-
-Edit `.env` and fill in your values:
-
-```env
-# Database (SQLite for local dev)
-DATABASE_URL="file:./dev.db"
-
-# AI Integration
-ANTHROPIC_API_KEY="your-anthropic-api-key"
-```
+> **Tip:** `prisma db push` is the fastest way to sync the schema during development. Use `prisma migrate dev` when you want to track schema history with migration files.
 
 Get an Anthropic API key at [console.anthropic.com](https://console.anthropic.com).
 
@@ -107,12 +125,16 @@ personal-crm/
 
 ## Deploying to Vercel
 
-1. **Create a Postgres database** on [Vercel Storage](https://vercel.com/storage/postgres)
-2. **Update Prisma schema** — change `provider = "sqlite"` to `provider = "postgresql"` in `prisma/schema.prisma`
-3. **Set environment variables** in Vercel dashboard:
-   - `DATABASE_URL` — your Vercel Postgres connection string
+1. **Push your code** to GitHub (already done if you're reading this)
+2. **Import the repo** at [vercel.com/new](https://vercel.com/new)
+3. **Set environment variables** in the Vercel dashboard:
+   - `DATABASE_URL` — your Supabase connection string (Settings → Database → URI)
+   - `NEXT_PUBLIC_SUPABASE_URL` — your Supabase project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — your Supabase anon key
    - `ANTHROPIC_API_KEY` — your Anthropic API key
-4. **Deploy**: `vercel deploy`
+4. **Deploy** — Vercel will build and deploy automatically
+
+> **Note:** Make sure you've already run `npx prisma migrate dev` or `npx prisma db push` against your Supabase database before the first deploy.
 
 ## Roadmap
 
