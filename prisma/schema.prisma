@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Contact {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  email       String?  @unique
+  phone       String?
+  company     String?
+  role        String?
+  notes       String?
+  avatarUrl   String?
+  linkedinUrl String?
+  twitterUrl  String?
+  website     String?
+  status      String   @default("active") // active, inactive, lead, customer
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  interactions      Interaction[]
+  tags              ContactTag[]
+  workflowEnrollments WorkflowEnrollment[]
+  aiSummary         AiSummary?
+}
+
+model Interaction {
+  id        String   @id @default(cuid())
+  type      String   // email, call, meeting, note, linkedin, other
+  title     String
+  content   String?
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  color     String       @default("#6366f1")
+  createdAt DateTime     @default(now())
+
+  contacts  ContactTag[]
+}
+
+model ContactTag {
+  contactId String
+  tagId     String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([contactId, tagId])
+}
+
+model Workflow {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  status      String   @default("active") // active, paused, archived
+  triggerType String   @default("manual") // manual, tag_added, status_changed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  steps       WorkflowStep[]
+  enrollments WorkflowEnrollment[]
+}
+
+model WorkflowStep {
+  id          String   @id @default(cuid())
+  order       Int
+  type        String   // email, task, wait, condition, ai_suggestion
+  title       String
+  content     String?
+  delayDays   Int?     @default(0)
+  config      String?  // JSON string for additional config
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workflowId  String
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+}
+
+model WorkflowEnrollment {
+  id          String    @id @default(cuid())
+  status      String    @default("active") // active, completed, paused, cancelled
+  currentStep Int       @default(0)
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  contactId   String
+  workflowId  String
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, workflowId])
+}
+
+model AiSummary {
+  id          String   @id @default(cuid())
+  summary     String
+  suggestions String   // JSON array of follow-up suggestions
+  generatedAt DateTime @default(now())
+
+  contactId   String   @unique
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+}
