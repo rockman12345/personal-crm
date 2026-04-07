@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 Contact: ${contact.firstName} ${contact.lastName}
 ${contact.company ? `Company: ${contact.company}` : ""}
 ${contact.role ? `Role: ${contact.role}` : ""}
-${contact.tags.length > 0 ? `Tags: ${contact.tags.map((t) => t.tag.name).join(", ")}` : ""}
+${contact.tags.length > 0 ? `Tags: ${contact.tags.map((t: { tag: { name: string } }) => t.tag.name).join(", ")}` : ""}
 ${contact.notes ? `Notes: ${contact.notes}` : ""}
 
 Interaction History:
