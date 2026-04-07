@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
   // Build context for the AI
   const interactionSummary = contact.interactions
-    .map((i) => `[${i.type.toUpperCase()} on ${i.date.toLocaleDateString()}] ${i.title}${i.content ? ": " + i.content : ""}`)
+    .map((i: { type: string; date: Date; title: string; content: string | null }) => `[${i.type.toUpperCase()} on ${i.date.toLocaleDateString()}] ${i.title}${i.content ? ": " + i.content : ""}`)
     .join("\n")
 
   const prompt = `You are a CRM assistant. Based on the following contact information and interaction history, provide:
